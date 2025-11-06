@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# "Conductor" - AI Presentation Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time, gesture-controlled presentation tool with a built-in AI assistant. This project uses your webcam to track your hand gestures to control slides and get live feedback from a Large Language Model (LLM).
 
-Currently, two official plugins are available:
+This project is a monorepo containing three parts:
+1.  `/frontend`: The React/TypeScript "command center" you see in the browser.
+2.  `/gesture-api`: (TODO) A Python backend for CV and LLM logic.
+3.  `/slide-controller`: (TODO) A Node.js backend for browser automation.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features (Current Frontend)
 
-## React Compiler
+-   **Real-time Hand Tracking**: Uses `@mediapipe/hands` to detect 21 hand landmarks from your webcam.
+-   **Live Visual Feedback**: Draws the hand "skeleton" directly onto the video feed using `<canvas>` so you can see what the AI sees.
+-   **Modern Tech Stack**: Built with React, TypeScript, Vite, and Tailwind CSS for a fast, modern developer experience.
+-   **AI-Ready UI**: Includes placeholders for displaying AI-generated summaries and Q&A overlays.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started (Running the Frontend)
 
-## Expanding the ESLint configuration
+This will run the Part 1 frontend, which is the visual dashboard.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+-   Node.js (v18 or higher)
+-   npm (or `npm.cmd` on PowerShell)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation & Running
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1.  **Clone the repository** (if you haven't already).
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2.  **Navigate to the frontend folder**:
+    ```bash
+    cd frontend
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+    *(If you are on PowerShell, you may need to use `npm.cmd install`)*
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+
+5.  **Open the app**:
+    * Open your browser to `http://localhost:5173`.
+    * **Allow webcam permission** when prompted.
+
+## How to Use (Current State)
+
+1.  Run the `frontend` project (`npm run dev`).
+2.  Open `http://localhost:5173` in your browser.
+3.  Allow microphone permission.
+4.  Put your hand in front of the camera.
+5.  You will see the hand landmarks (a "skeleton") drawn on your hand in real-time.
+
+## Tech Stack (Frontend)
+
+-   **React** (with Hooks)
+-   **TypeScript**
+-   **Vite**
+-   **Tailwind CSS**
+-   **`react-webcam`**: For accessing the camera feed.
+-   **`@mediapipe/hands`**: For in-browser hand tracking.
+-   **`framer-motion`**: For UI animations.
+
