@@ -17,13 +17,62 @@ const itemVariants = {
 export default function ConductorDashboard() {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [slideText, setSlideText] = useState(
-    "Sample slide content: This presentation discusses the implementation of an AI-powered gesture recognition system. The system uses MediaPipe for hand tracking and integrates with a Rust backend that leverages Google's Gemini API for intelligent text analysis. Key features include real-time gesture detection, natural language processing, and seamless frontend-backend communication."
-  );
+  
+  // Sample slides array - user can add more
+  const [slides, setSlides] = useState([
+    "Sample slide 1: This presentation discusses the implementation of an AI-powered gesture recognition system. The system uses MediaPipe for hand tracking and integrates with a Rust backend that leverages Google's Gemini API for intelligent text analysis.",
+    "Sample slide 2: Key features include real-time gesture detection, natural language processing, and seamless frontend-backend communication. The architecture is built with React and TypeScript for the frontend, with Rust powering the backend API.",
+    "Sample slide 3: Hand gestures enable intuitive control - raise your hand to get AI-suggested questions, make a fist to summarize key points, and swipe left or right to navigate between slides."
+  ]);
+  
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [slideText, setSlideText] = useState(slides[0]);
   const [aiResponse, setAIResponse] = useState<string>('');
   const [lastCommand, setLastCommand] = useState<string>('');
   const [currentGesture, setCurrentGesture] = useState<GestureResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [swipeNotification, setSwipeNotification] = useState<string>('');
+
+  // Handle slide navigation
+  const goToSlide = (index: number) => {
+    if (index >= 0 && index < slides.length) {
+      setCurrentSlideIndex(index);
+      setSlideText(slides[index]);
+      setAIResponse(''); // Clear AI response when changing slides
+      setLastCommand('');
+    }
+  };
+
+  const handleSwipe = (direction: 'left' | 'right') => {
+    console.log('📱 Swipe detected in Dashboard:', direction);
+    console.log('Current slide:', currentSlideIndex, '/', slides.length - 1);
+    
+    if (direction === 'right') {
+      // Swipe right (hand moves right) = next slide
+      const nextIndex = Math.min(slides.length - 1, currentSlideIndex + 1);
+      console.log('Going to NEXT slide:', nextIndex);
+      
+      // Show notification
+      if (nextIndex > currentSlideIndex) {
+        setSwipeNotification('👉 Swipe Right - Next Slide');
+        setTimeout(() => setSwipeNotification(''), 2000);
+      }
+      
+      goToSlide(nextIndex);
+    } else {
+      // Swipe left (hand moves left) = previous slide
+      const prevIndex = Math.max(0, currentSlideIndex - 1);
+      console.log('Going to PREVIOUS slide:', prevIndex);
+      
+      // Show notification
+      if (prevIndex < currentSlideIndex) {
+        setSwipeNotification('👈 Swipe Left - Previous Slide');
+        setTimeout(() => setSwipeNotification(''), 2000);
+      }
+      
+      goToSlide(prevIndex);
+    }
+  };
 
   const handleGestureDetected = (gesture: GestureResult) => {
     setCurrentGesture(gesture);
@@ -49,6 +98,7 @@ export default function ConductorDashboard() {
       setIsProcessing(true);
       handleAIResponse(response, command);
     },
+    onSwipe: handleSwipe,
     slideText,
   });
 
@@ -112,6 +162,29 @@ export default function ConductorDashboard() {
                 )}
               </AnimatePresence>
 
+              {/* Swipe notification */}
+              <AnimatePresence>
+                {swipeNotification && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    transition={{ duration: 0.3, type: 'spring', stiffness: 200, damping: 20 }}
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500/90 to-purple-500/90 backdrop-blur-md text-white px-6 py-4 rounded-2xl border border-white/20 shadow-2xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl animate-pulse">
+                        {swipeNotification.includes('Right') ? '👉' : '👈'}
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg">{swipeNotification}</p>
+                        <p className="text-xs text-white/80">Slide {currentSlideIndex + 1} of {slides.length}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Processing overlay */}
               <AnimatePresence>
                 {isProcessing && (
@@ -132,10 +205,11 @@ export default function ConductorDashboard() {
             </div>
 
             {/* Gesture guide simplified glass cards */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+            <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3">
               {[
                 { icon: '✋', title: 'Raise Hand', desc: 'Ask Question' },
                 { icon: '✊', title: 'Make Fist', desc: 'Summarize' },
+                { icon: '👈', title: 'Swipe Left/Right', desc: 'Navigate Slides' },
               ].map((g, i) => (
                 <motion.div
                   key={i}
@@ -153,6 +227,45 @@ export default function ConductorDashboard() {
 
           {/* Right column */}
           <motion.aside variants={itemVariants} className="flex-1 flex flex-col min-h-0 gap-4">
+            {/* Slide navigation */}
+            <div className="flex items-center justify-between gap-4">
+              <button
+                onClick={() => goToSlide(currentSlideIndex - 1)}
+                disabled={currentSlideIndex === 0}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:opacity-50 rounded-lg border border-white/10 text-white font-semibold transition-all disabled:cursor-not-allowed"
+              >
+                ← Previous
+              </button>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-slate-300 text-sm">
+                  Slide {currentSlideIndex + 1} of {slides.length}
+                </span>
+                <div className="flex gap-1">
+                  {slides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => goToSlide(idx)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        idx === currentSlideIndex 
+                          ? 'bg-blue-400 w-6' 
+                          : 'bg-white/20 hover:bg-white/40'
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <button
+                onClick={() => goToSlide(currentSlideIndex + 1)}
+                disabled={currentSlideIndex === slides.length - 1}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:opacity-50 rounded-lg border border-white/10 text-white font-semibold transition-all disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            </div>
+
             {/* Slide content editor */}
             <motion.div whileHover={{ y: -2 }} className="rounded-2xl overflow-hidden border border-white/6 bg-white/6 p-6 shadow-lg">
               <label className="flex items-center gap-3 text-white font-semibold mb-3 text-lg">
@@ -161,10 +274,16 @@ export default function ConductorDashboard() {
               </label>
               <textarea
                 value={slideText}
-                onChange={(e) => setSlideText(e.target.value)}
+                onChange={(e) => {
+                  setSlideText(e.target.value);
+                  // Update the slide in the array
+                  const newSlides = [...slides];
+                  newSlides[currentSlideIndex] = e.target.value;
+                  setSlides(newSlides);
+                }}
                 placeholder="Paste your slide content here..."
                 className="w-full bg-transparent text-white placeholder-slate-400 border border-white/8 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-sm leading-relaxed resize-none"
-                rows={7}
+                rows={6}
               />
             </motion.div>
 
