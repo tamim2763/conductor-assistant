@@ -301,6 +301,6 @@ This project was made possible by the following technologies and resources:
 
 <div align="center">
 
-[⬆ Back to Top](#-conductor-assistant)
+[⬆ Back to Top](#conductor-assistant)
 
 </div>
