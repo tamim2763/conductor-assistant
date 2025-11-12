@@ -26,7 +26,8 @@ Conductor Assistant is an innovative presentation assistant that combines real-t
 │  │          React Frontend (TypeScript + Vite)                 │ │
 │  │  • ConductorDashboard Component                            │ │
 │  │  • Hand Tracking Hook (MediaPipe)                          │ │
-│  │  • Gesture Detection (✋ Raise Hand / ✊ Fist)              │ │
+│  │  • Gesture Detection (✋ ✊ 👉 👈)                          │ │
+│  │  • Multi-Slide Management & Navigation                    │ │
 │  │  • Webcam Integration (react-webcam)                       │ │
 │  │  • AI Service Client                                       │ │
 │  └───────────────────┬────────────────────────────────────────┘ │
@@ -83,8 +84,9 @@ Conductor Assistant is an innovative presentation assistant that combines real-t
 - Render the interactive dashboard UI with glassmorphism design
 - Capture video feed from user's webcam
 - Perform real-time hand tracking using MediaPipe
-- Detect and classify hand gestures (raised hand, fist)
+- Detect and classify hand gestures (raised hand, fist, swipe left/right)
 - Display gesture detection feedback with confidence scores
+- Manage multi-slide presentations with slide navigation
 - Communicate with backend API for AI processing
 - Display AI-generated summaries and audience questions
 - Handle user input for slide content
@@ -111,6 +113,7 @@ Conductor Assistant is an innovative presentation assistant that combines real-t
 - Process AI assistance requests from frontend
 - Route commands to appropriate AI processing functions
 - Integrate with Google Gemini API for content analysis
+- Generate intelligent summaries and audience questions
 - Handle error responses and logging
 - Support CORS for cross-origin requests
 - Manage API key security through environment variables
@@ -128,14 +131,24 @@ Conductor Assistant is an innovative presentation assistant that combines real-t
 The system uses MediaPipe Hands to detect and track 21 hand landmarks in real-time:
 
 - **Raised Hand (✋)**: Triggers "Ask Question" mode
-  - Detects 5 extended fingers
+  - Detects 4-5 extended fingers
   - Generates likely audience questions based on slide content
   - Shows confidence percentage
 
 - **Fist (✊)**: Triggers "Summarize" mode
-  - Detects closed hand with 0 extended fingers
+  - Detects closed hand with 0-1 extended fingers
   - Generates concise one-sentence summary of slide content
   - Displays key takeaway message
+
+- **Swipe Right (👉)**: Navigate to Next Slide
+  - Detects rapid hand movement from left to right
+  - Advances to the next slide in presentation
+  - 10% screen width threshold for activation
+
+- **Swipe Left (👈)**: Navigate to Previous Slide
+  - Detects rapid hand movement from right to left
+  - Goes back to the previous slide
+  - Built-in cooldown prevents accidental double-swipes
 
 ---
 
@@ -202,41 +215,71 @@ Navigate to **[http://localhost:5173](http://localhost:5173)** in your browser.
 
 ## How to Use
 
+### Getting Started
+
 1. **Allow Webcam Access**: When prompted by your browser, grant permission to use your webcam.
 
-2. **Enter Slide Content**: In the "Slide Content" text area on the right, paste or type your presentation slide text.
+2. **Prepare Your Slides**: The system comes with 3 sample slides. Edit them in the "Slide Content" text area on the right, or create your own.
 
-3. **Position Your Hand**: Ensure your hand is visible in the webcam feed (left side of the screen).
+3. **Position Your Hand**: Ensure your hand is visible in the webcam feed (left side of the screen). Look for green hand landmarks to confirm tracking is active.
 
-4. **Make a Gesture**:
-   - **Raise Hand (✋)**: All 5 fingers extended → Get a likely audience question
-   - **Make Fist (✊)**: All fingers closed → Get a slide summary
+### Gesture Controls
 
-5. **Wait for AI Response**: The system will display "Analyzing with AI..." while processing.
+**AI Assistance Gestures** (require 1-second hold):
 
-6. **View Results**: The AI-generated response appears in the right panel below the input area.
+- **Raise Hand (✋)**: Extend all 5 fingers
+  - Generates likely audience questions based on current slide content
+  - Hold the gesture for 1 second to trigger
+  - AI response appears in the right panel
 
-7. **Repeat**: Make another gesture to get a new analysis (the gesture tracker resets after each response).
+- **Make Fist (✊)**: Close all fingers
+  - Generates concise one-sentence summary of current slide
+  - Hold the gesture for 1 second to trigger
+  - Key takeaway appears in the right panel
+
+**Navigation Gestures** (instant activation):
+
+- **Swipe Right (👉)**: Quick hand movement from left to right
+  - Advances to the next slide
+  - Works instantly (no hold required)
+  - Edge case: On last slide, stays in place
+
+- **Swipe Left (👈)**: Quick hand movement from right to left
+  - Goes back to previous slide
+  - Works instantly (no hold required)
+  - Edge case: On first slide, stays in place
+
+### Tips for Best Results
+
+- **Lighting**: Ensure good lighting on your hand for better tracking
+- **Distance**: Keep hand 1-2 feet from camera for optimal detection
+- **Speed**: For swipes, make quick, deliberate movements
+- **Hold Time**: For AI gestures (raised hand/fist), hold steady for 1 second
+- **Cooldown**: Wait 0.8 seconds between swipes to prevent double-triggers
+- **Manual Navigation**: Use Previous/Next buttons or slide dots for alternative navigation
 
 ---
 
 ## Future Enhancements
 
+- [x] **Swipe Navigation**: Navigate slides with left/right hand swipes ✅ **COMPLETED**
+- [ ] **Slide Management UI**: Add/delete/reorder slides through interface
+- [ ] **Import Slides**: Load content from PowerPoint/Google Slides/PDF
 - [ ] **Multi-User Support**: Enable multiple presenters to use the system simultaneously
 - [ ] **Gesture Customization**: Allow users to define custom gestures for different actions
-- [ ] **Slide Deck Integration**: Integrate with PowerPoint/Google Slides APIs for direct slide control
 - [ ] **Voice Commands**: Add speech recognition as an alternative input method
 - [ ] **Analytics Dashboard**: Track gesture usage patterns and AI response quality
 - [ ] **Offline Mode**: Cache AI responses for frequently used content
 - [ ] **Mobile Support**: Optimize UI and hand tracking for mobile devices
 - [ ] **Recording Feature**: Record presentations with gesture timestamps
 - [ ] **Multi-Language Support**: Support for presentations in different languages
-- [ ] **Advanced Gestures**: Add more complex gestures (swipe, pinch, rotate)
+- [ ] **Advanced Gestures**: Add more complex gestures (pinch, rotate, two-hand)
 - [ ] **Real-time Collaboration**: Enable remote audience participation
 - [ ] **Accessibility Features**: Screen reader support and keyboard-only navigation
 - [ ] **Docker Deployment**: Containerize both frontend and backend for easy deployment
 - [ ] **CI/CD Pipeline**: Automated testing and deployment workflows
 - [ ] **WebSocket Support**: Real-time bidirectional communication for instant updates
+- [ ] **Gesture Sensitivity Settings**: UI controls to adjust swipe thresholds
 
 ---
 

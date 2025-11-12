@@ -11,6 +11,7 @@ interface UseHandTrackingProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   onGestureDetected?: (gesture: GestureResult) => void;
   onAIResponse?: (response: string, command: string) => void;
+  onSwipe?: (direction: 'left' | 'right') => void;
   slideText?: string;
 }
 
@@ -19,6 +20,7 @@ export function useHandTracking({
   canvasRef, 
   onGestureDetected, 
   onAIResponse,
+  onSwipe,
   slideText = "Sample slide content about AI and machine learning. This presentation discusses how artificial intelligence can enhance user experiences through gesture recognition and natural language processing."
 }: UseHandTrackingProps) {
   const handsRef = useRef<Hands | null>(null);
@@ -107,6 +109,16 @@ export function useHandTracking({
     // Draw hand landmarks if detected
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       for (const landmarks of results.multiHandLandmarks) {
+        // Check for swipe gesture first
+        const swipeGesture = gestureTrackerRef.current.trackHandPosition(landmarks);
+        if (swipeGesture === 'swipe-left') {
+          console.log('👈 Swipe LEFT detected in hook!');
+          onSwipe?.('left');
+        } else if (swipeGesture === 'swipe-right') {
+          console.log('👉 Swipe RIGHT detected in hook!');
+          onSwipe?.('right');
+        }
+
         // Draw connections between landmarks
         drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
           color: '#00FF00',
@@ -136,7 +148,13 @@ export function useHandTracking({
         ctx.scale(-1, 1); // Flip horizontally
         ctx.fillStyle = '#FFFFFF';
         ctx.font = 'bold 24px Arial';
-        ctx.fillText(gesture.description, -canvas.width + 10, 40); // Adjust x position for flipped canvas
+        
+        // Show swipe if detected, otherwise show regular gesture
+        const displayText = swipeGesture 
+          ? `Swipe ${swipeGesture === 'swipe-left' ? 'Left' : 'Right'} ←→`
+          : gesture.description;
+        
+        ctx.fillText(displayText, -canvas.width + 10, 40); // Adjust x position for flipped canvas
         ctx.restore();
       }
     }

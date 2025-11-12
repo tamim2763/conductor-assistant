@@ -5,7 +5,7 @@
 
 import type { NormalizedLandmark } from '@mediapipe/hands';
 
-export type GestureType = 'raised-hand' | 'fist' | 'none';
+export type GestureType = 'raised-hand' | 'fist' | 'swipe-left' | 'swipe-right' | 'none';
 
 export interface GestureResult {
   type: GestureType;
@@ -130,13 +130,77 @@ export function detectGesture(landmarks: NormalizedLandmark[]): GestureResult {
 }
 
 /**
- * Gesture state tracker to avoid multiple triggers
+ * Gesture state tracker to avoid multiple triggers and track swipes
  */
 export class GestureTracker {
   private lastGesture: GestureType = 'none';
   private gestureStartTime: number = 0;
   private readonly GESTURE_HOLD_TIME = 1000; // 1 second hold
   private gestureTriggered: boolean = false;
+  
+  // Swipe tracking
+  private handPositions: { x: number; timestamp: number }[] = [];
+  private readonly SWIPE_HISTORY_LENGTH = 10;
+  private readonly SWIPE_THRESHOLD = 0.15; // 15% of screen width
+  private readonly SWIPE_TIME_WINDOW = 500; // 500ms window
+  private lastSwipeTime: number = 0;
+  private readonly SWIPE_COOLDOWN = 1000; // 1 second between swipes
+
+  /**
+   * Track hand position for swipe detection
+   */
+  trackHandPosition(landmarks: NormalizedLandmark[]): GestureType | null {
+    if (!landmarks || landmarks.length === 0) return null;
+
+    const wrist = landmarks[0]; // Wrist is landmark 0
+    const currentTime = Date.now();
+
+    // Add current position to history
+    this.handPositions.push({ x: wrist.x, timestamp: currentTime });
+
+    // Keep only recent positions
+    this.handPositions = this.handPositions.filter(
+      pos => currentTime - pos.timestamp < this.SWIPE_TIME_WINDOW
+    );
+
+    // Need at least 5 positions for reliable swipe detection
+    if (this.handPositions.length < 5) return null;
+
+    // Check if we're in cooldown period
+    if (currentTime - this.lastSwipeTime < this.SWIPE_COOLDOWN) return null;
+
+    const firstPos = this.handPositions[0];
+    const lastPos = this.handPositions[this.handPositions.length - 1];
+    const deltaX = lastPos.x - firstPos.x;
+
+    // Debug logging
+    console.log('Swipe detection:', {
+      positions: this.handPositions.length,
+      deltaX: deltaX.toFixed(3),
+      threshold: this.SWIPE_THRESHOLD,
+      absDeltaX: Math.abs(deltaX).toFixed(3),
+    });
+
+    // Detect swipe right (hand physically moves right, deltaX increases)
+    // In user's view: swipe right = next slide
+    if (deltaX > this.SWIPE_THRESHOLD) {
+      console.log('🎯 SWIPE RIGHT detected! (Next slide)');
+      this.lastSwipeTime = currentTime;
+      this.handPositions = []; // Clear history
+      return 'swipe-right';
+    }
+
+    // Detect swipe left (hand physically moves left, deltaX decreases)
+    // In user's view: swipe left = previous slide
+    if (deltaX < -this.SWIPE_THRESHOLD) {
+      console.log('🎯 SWIPE LEFT detected! (Previous slide)');
+      this.lastSwipeTime = currentTime;
+      this.handPositions = []; // Clear history
+      return 'swipe-left';
+    }
+
+    return null;
+  }
 
   /**
    * Track gesture and determine if it should trigger an action
